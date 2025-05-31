@@ -3,42 +3,49 @@ package main
 import (
 	"fmt"
 	"sort"
-	"strings"
 )
 
-func groupAnagrams(strs []string) [][]string {
-	anagramMap := make(map[string][]string)
+func permuteUnique(nums []int) [][]int {
+	var res [][]int
+	sort.Ints(nums) // Urutkan agar duplikat bisa dihindari dengan mudah
+	used := make([]bool, len(nums))
+	var backtrack func(path []int)
 
-	for _, word := range strs {
-		// Ubah kata menjadi urutan huruf yang telah diurutkan (sorted)
-		sortedWord := sortString(word)
-		// Gunakan kata yang telah diurutkan sebagai key
-		anagramMap[sortedWord] = append(anagramMap[sortedWord], word)
+	backtrack = func(path []int) {
+		if len(path) == len(nums) {
+			// Buat salinan sebelum menambahkan
+			tmp := make([]int, len(path))
+			copy(tmp, path)
+			res = append(res, tmp)
+			return
+		}
+
+		for i := 0; i < len(nums); i++ {
+			// Lewati jika angka sudah digunakan
+			if used[i] {
+				continue
+			}
+			// Hindari duplikat: jika sama dengan sebelumnya dan sebelumnya belum dipakai di level ini
+			if i > 0 && nums[i] == nums[i-1] && !used[i-1] {
+				continue
+			}
+
+			used[i] = true
+			path = append(path, nums[i])
+			backtrack(path)
+			path = path[:len(path)-1]
+			used[i] = false
+		}
 	}
 
-	// Kumpulkan hasilnya ke slice 2 dimensi
-	result := make([][]string, 0, len(anagramMap))
-	for _, group := range anagramMap {
-		result = append(result, group)
-	}
-
-	return result
-}
-
-// Helper: mengurutkan huruf dalam string
-func sortString(s string) string {
-	chars := strings.Split(s, "")
-	sort.Strings(chars)
-	return strings.Join(chars, "")
+	backtrack([]int{})
+	return res
 }
 
 func main() {
-	// Contoh penggunaan
-	input := []string{"eat", "tea", "tan", "ate", "nat", "bat"}
-	grouped := groupAnagrams(input)
-
-	// Cetak hasilnya
-	for _, group := range grouped {
-		fmt.Println(group)
+	input := []int{1, 1, 2}
+	result := permuteUnique(input)
+	for _, perm := range result {
+		fmt.Println(perm)
 	}
 }
